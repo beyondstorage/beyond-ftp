@@ -1,0 +1,14 @@
+service = "memory:///ftp"
+
+host = "127.0.0.1"
+
+port = 21
+
+public-host = "127.0.0.1"
+
+start-port = 1024
+
+end-port = 2048
+
+[users]
+anonymous = ""
