@@ -76,14 +76,14 @@ func setDefaultValue(c *Config) error {
 
 func GetServerSetting(c *Config) *ServerSettings {
 	return &ServerSettings{
-		Service:       c.Service,
-		ListenHost:    c.ListenHost,
-		ListenPort:    c.ListenPort,
-		PublicHost:    c.PublicHost,
+		Service:    c.Service,
+		ListenHost: c.ListenHost,
+		ListenPort: c.ListenPort,
+		PublicHost: c.PublicHost,
 		DataPortRange: &PortRange{
 			Start: c.StartPort,
 			End:   c.EndPort,
 		},
-		Users:         c.Users,
+		Users: c.Users,
 	}
 }

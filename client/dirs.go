@@ -14,13 +14,13 @@ import (
 )
 
 func (c *Handler) absPath(p string) string {
-	p2 := c.Path()
+	curPath := c.Path()
 
 	p = path.Clean(p)
 	if path.IsAbs(p) {
 		return p
 	}
-	return path.Join(p2, p)
+	return path.Join(curPath, p)
 }
 
 func (c *Handler) handleCWD() {

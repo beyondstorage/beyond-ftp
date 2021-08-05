@@ -8,6 +8,8 @@ import (
 	"net"
 	"time"
 
+	_ "github.com/beyondstorage/go-service-memory"
+	"github.com/beyondstorage/go-storage/v4/services"
 	"github.com/beyondstorage/go-storage/v4/types"
 	"github.com/pengsrc/go-shared/check"
 
@@ -106,8 +108,14 @@ func (s *FTPServer) Stop() {
 
 // NewFTPServer creates a new FTPServer instance.
 func NewFTPServer(c *config.Config) (*FTPServer, error) {
+	setting := config.GetServerSetting(c)
+	storager, err := services.NewStoragerFromString(c.Service)
+	if err != nil {
+		return nil, err
+	}
 	return &FTPServer{
 		StartTime: time.Now().UTC(),
-		setting: config.GetServerSetting(c),
+		setting:   setting,
+		storager:  storager,
 	}, nil
 }

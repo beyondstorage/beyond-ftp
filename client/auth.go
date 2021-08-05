@@ -20,8 +20,8 @@ func (c *Handler) handlePASS() {
 	username := c.user
 	password := c.param
 
-	if _, ok := c.serverSetting.Users[username]; ok {
-		if username == "anonymous" || password == c.serverSetting.Users[username] {
+	if v, ok := c.serverSetting.Users[username]; ok {
+		if username == "anonymous" || password == v {
 			c.loginUser = username
 			c.WriteMessage(StatusUserLoggedIn, "Password ok, continue")
 			return

@@ -54,12 +54,6 @@ func (c *Handler) storeOrAppend(path string, append bool) {
 }
 
 func (c *Handler) upload(path string, tr utils.Conn, append bool) error {
-	file := new(bytes.Buffer)
-	size, err := io.Copy(file, tr)
-	if err != nil {
-		return err
-	}
-
 	if appender, ok := c.storager.(types.Appender); ok {
 		object, err := c.storager.Stat(path)
 		if err != nil && !errors.Is(err, services.ErrObjectNotExist) {
@@ -73,18 +67,41 @@ func (c *Handler) upload(path string, tr utils.Conn, append bool) error {
 			}
 		}
 
+		file, size, err := c.cacheFile(tr)
+		if err != nil {
+			return err
+		}
+
 		_, err = appender.WriteAppendWithContext(c.commandAbortCtx, object, file, size)
+		if err != nil {
+			return err
+		}
+		err = appender.CommitAppendWithContext(c.commandAbortCtx, object)
 		if err != nil {
 			return err
 		}
 		return nil
 	}
 
+	file, size, err := c.cacheFile(tr)
+	if err != nil {
+		return err
+	}
 	_, err = c.storager.WriteWithContext(c.commandAbortCtx, path, file, size)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func (c *Handler) cacheFile(tr utils.Conn) (io.Reader, int64, error) {
+	file := new(bytes.Buffer)
+	size, err := io.Copy(file, tr)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return file, size, nil
 }
 
 func (c *Handler) handleRETR() {
@@ -112,10 +129,6 @@ func (c *Handler) handleRETR() {
 		c.TransferClose()
 		c.WriteMessage(StatusClosingDataConn, "transfer finished")
 	}
-}
-
-func (c *Handler) handleCHMOD(params string) {
-
 }
 
 func (c *Handler) handleDELE() {

@@ -21,21 +21,21 @@ import (
 
 // Handler driver handles the file system access logic.
 type Handler struct {
-	id          string                   // id of the client
-	conn        utils.Conn               // TCP connection
-	writer      *bufio.Writer            // Writer on the TCP connection
-	reader      *bufio.Reader            // Reader on the TCP connection
-	storager    types.Storager           // The root storager
-	user        string                   // Authenticated user
-	loginUser   string                   // login in user name
-	path        string                   // Current path
-	command     string                   // Command received on the connection
-	param       string                   // Param of the FTP command
-	connectedAt time.Time                // Date of connection
-	remoteAddr  string                   // Remote address of the connection
-	ctxRnfr     string                   // Rename from
-	ctxRest     int64                    // Restart point
-	transfer    transfer.Handler         // Transfer connection
+	id            string                 // id of the client
+	conn          utils.Conn             // TCP connection
+	writer        *bufio.Writer          // Writer on the TCP connection
+	reader        *bufio.Reader          // Reader on the TCP connection
+	storager      types.Storager         // The root storager
+	user          string                 // Authenticated user
+	loginUser     string                 // login in user name
+	path          string                 // Current path
+	command       string                 // Command received on the connection
+	param         string                 // Param of the FTP command
+	connectedAt   time.Time              // Date of connection
+	remoteAddr    string                 // Remote address of the connection
+	ctxRnfr       string                 // Rename from
+	ctxRest       int64                  // Restart point
+	transfer      transfer.Handler       // Transfer connection
 	transferTLS   bool                   // Use TLS for transfer connection
 	serverSetting *config.ServerSettings // serverSetting
 
@@ -90,7 +90,7 @@ func (c *Handler) HandleCommands() {
 		}
 
 		if cmdDesc == nil {
-			c.WriteMessage(StatusSyntaxErrorNotRecognised, command+" command not supported")
+			c.WriteMessage(StatusCommandNotImplemented, command+" command not supported")
 			continue
 		}
 

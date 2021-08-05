@@ -23,7 +23,7 @@ var (
 	versionFlag bool
 	cfgFileFlag string
 
-	clientCount      int32
+	clientCount int32
 )
 
 // RootCmd represents the base command when called without any subcommands
@@ -87,7 +87,7 @@ func Execute() {
 
 func init() {
 	RootCmd.PersistentFlags().BoolVarP(&versionFlag, "version", "v", false, "Show version")
-	RootCmd.PersistentFlags().StringVarP(&cfgFileFlag, "config", "c", "", "Specify config file")
+	RootCmd.PersistentFlags().StringVarP(&cfgFileFlag, "config", "c", "./config/config.example.toml", "Specify config file")
 }
 
 func signalHandler(s server.Server) {
