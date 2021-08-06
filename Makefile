@@ -13,23 +13,15 @@ help:
 check: format vet
 
 format:
-	@echo "go fmt"
-	@go fmt ./...
+	go fmt ./...
 	@echo "ok"
 
 generate:
-	@echo "generate code"
-	@go generate ./...
+	go generate ./...
 	@echo "ok"
 
 vet:
-	@echo "go vet"
-	@go vet ./...
-	@echo "ok"
-
-generate:
-	@echo "generate code"
-	go generate ./...
+	go vet ./...
 	@echo "ok"
 
 build: tidy generate check
@@ -45,9 +37,8 @@ integration_test:
 	go test -race -count=1 -covermode=atomic -v ./tests
 
 tidy:
-	@echo "Tidy and check the go mod files"
-	@go mod tidy
-	@go mod verify
+	go mod tidy
+	go mod verify
 	@echo "Done"
 
 clean:
