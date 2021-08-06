@@ -1,29 +1,29 @@
 SHELL := /bin/bash
+GO_BUILD_OPTION := -trimpath -tags netgo
 
 .PHONY: all check format lint build test generate tidy
 
 help:
 	@echo "Please use \`make <target>\` where <target> is one of"
 	@echo "  check               to do static check"
-	@echo "  build               to create bin directory and build"
+	@echo "  build               to create bin directory and build beyond-ftp"
 	@echo "  generate            to generate code"
 	@echo "  test                to run test"
 
-check: vet
+check: format vet
 
 format:
 	go fmt ./...
 
+generate:
+	go generate ./...
+
 vet:
 	go vet ./...
 
-generate:
-	@echo "generate code"
-	go generate ./...
-	go fmt ./...
-
 build: tidy generate check
-	go build ./...
+	@echo "build beyond-ftp"
+	go build ${GO_BUILD_OPTION} -race -o ./bin/beyond-ftp .
 
 test:
 	go test -race -coverprofile=coverage.txt -covermode=atomic -v .
