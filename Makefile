@@ -14,20 +14,16 @@ check: format vet
 
 format:
 	go fmt ./...
-	@echo "ok"
 
 generate:
 	go generate ./...
-	@echo "ok"
 
 vet:
 	go vet ./...
-	@echo "ok"
 
 build: tidy generate check
 	@echo "build beyond-ftp"
 	go build ${GO_BUILD_OPTION} -race -o ./bin/beyond-ftp .
-	@echo "ok"
 
 test:
 	go test -race -coverprofile=coverage.txt -covermode=atomic -v .
@@ -39,7 +35,6 @@ integration_test:
 tidy:
 	go mod tidy
 	go mod verify
-	@echo "Done"
 
 clean:
 	@echo "clean generated files"
