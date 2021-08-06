@@ -26,7 +26,7 @@ build: tidy generate check
 	go build ${GO_BUILD_OPTION} -race -o ./bin/beyond-ftp .
 
 test:
-	go test -race -coverprofile=coverage.txt -covermode=atomic -v .
+	go test -race -coverprofile=coverage.txt -covermode=atomic -v ./...
 	go tool cover -html="coverage.txt" -o "coverage.html"
 
 integration_test:
