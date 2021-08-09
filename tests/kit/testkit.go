@@ -14,7 +14,6 @@ import (
 	_ "github.com/beyondstorage/go-service-memory"
 	"github.com/beyondstorage/go-storage/v4/services"
 	"github.com/beyondstorage/go-storage/v4/types"
-	"github.com/pengsrc/go-shared/check"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/beyondstorage/beyond-ftp/client"
@@ -157,7 +156,7 @@ func NewTestKitWithConfig(t *testing.T, settings *config.ServerSettings) *TestKi
 	listener := make(chan interface{})
 	cm := newConnManager()
 	mockServer, err := NewMockServer(listener, cm, settings)
-	check.ErrorForExit("server init error", err)
+	utils.MustNil(err)
 	go cmd.StartServer(mockServer)
 
 	kit := &TestKit{

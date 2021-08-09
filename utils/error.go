@@ -1,13 +1,13 @@
 package utils
 
 import (
-	"log"
 	"runtime/debug"
+
+	"go.uber.org/zap"
 )
 
 func MustNil(e error) {
 	if e != nil {
-		debug.PrintStack()
-		log.Fatalf("error occured %v", e)
+		zap.L().Fatal("error occurred", zap.Error(e), zap.String("trace", string(debug.Stack())))
 	}
 }

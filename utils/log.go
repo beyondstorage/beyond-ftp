@@ -1,16 +1,12 @@
 package utils
 
 import (
-	"github.com/pengsrc/go-shared/check"
-	"github.com/pengsrc/go-shared/log"
+	"go.uber.org/zap"
 )
 
-// Logger is the global logger for BeyondFTP
-var Logger *log.ContextFreeLogger
-
-func init() {
+func SetUpLog() {
 	// Setup logger.
-	l, err := log.NewTerminalLogger("debug")
-	check.ErrorForExit("log init error: ", err)
-	Logger = log.NewContextFreeLogger(l)
+	logger, err := zap.NewProduction()
+	MustNil(err)
+	zap.ReplaceGlobals(logger)
 }

@@ -1,14 +1,23 @@
+# Beyond FTP server configuration
+
+# connection string for Storager init. see https://beyondstorage.io/docs/go-storage/index for more details.
 service = "memory:///ftp"
 
-host = "127.0.0.1"
+# FTP server host.
+host = "localhost"
 
+# FTP server port.
 port = 21
 
+# FTP server passive connection host.
 public-host = "127.0.0.1"
 
+# FTP server passive connection start port.
 start-port = 1024
 
+# FTP server passive connection end port.
 end-port = 2048
 
+# FTP server users.
 [users]
 anonymous = ""

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/beyondstorage/go-storage/v4/types"
+	"go.uber.org/zap"
 
 	"github.com/beyondstorage/beyond-ftp/config"
 	"github.com/beyondstorage/beyond-ftp/transfer"
@@ -71,14 +72,14 @@ func (c *Handler) HandleCommands() {
 
 		if err != nil {
 			if err == io.EOF {
-				utils.Logger.Debugf("TCP disconnect: ftp.disconnect, ID: %s, Clean: %t", c.id, false)
+				zap.L().Debug("TCP connect close", zap.String("id", c.id))
 			} else {
-				utils.Logger.Errorf("Read error: ftp.read_error, ID: %s, Error: %v", c.id, err)
+				zap.L().Error("Read error", zap.String("id", c.id), zap.Error(err))
 			}
 			return
 		}
 
-		utils.Logger.Debugf("FTP RECV: ftp.cmd_recv, ID: %s, Line: %v", c.id, line)
+		zap.L().Debug("Receive command", zap.String("id", c.id), zap.String("receive", line))
 
 		command, param := utils.ParseLine(line)
 		command = strings.ToUpper(command)
@@ -125,9 +126,9 @@ func (c *Handler) TransferOpen() (utils.Conn, error) {
 	c.WriteMessage(StatusFileStatusOK, "Using transfer connection")
 	conn, err := c.transfer.Open()
 	if err == nil {
-		utils.Logger.Debugf("FTP Transfer connection opened: ftp.transfer_open, ID: %s", c.id)
+		zap.L().Debug("Transfer connection open", zap.String("id", c.id))
 	} else {
-		utils.Logger.Errorf("FTP Transfer connection open failed: %v: ", err)
+		zap.L().Debug("Transfer connection open failed", zap.String("id", c.id), zap.Error(err))
 	}
 
 	return conn, err
@@ -138,7 +139,7 @@ func (c *Handler) TransferClose() {
 	if c.transfer != nil {
 		c.transfer.Close()
 		c.transfer = nil
-		utils.Logger.Debugf("FTP Transfer connection closed: ftp.transfer_close. ID: %s", c.id)
+		zap.L().Debug("Transfer connection closed", zap.String("id", c.id))
 	}
 }
 
@@ -146,7 +147,7 @@ func (c *Handler) TransferClose() {
 func (c *Handler) handleCommand(ctx context.Context) {
 	defer func() {
 		if r := recover(); r != nil {
-			utils.Logger.Errorf("Internel error: %v, Trace: %s", r, debug.Stack())
+			zap.L().Error("Internal error", zap.String("trace", string(debug.Stack())))
 			c.WriteMessage(StatusSyntaxErrorNotRecognised, fmt.Sprintf("Internal error: %s", r))
 		}
 	}()
@@ -176,7 +177,7 @@ func (c *Handler) disconnect() {
 }
 
 func (c *Handler) writeLine(line string) {
-	utils.Logger.Debugf("FTP SEND: ftp.cmd_send, ID: %s, Line: %s", c.id, line)
+	zap.L().Debug("FTP response", zap.String("id", c.id), zap.String("response", line))
 	c.writer.Write([]byte(line))
 	c.writer.Write([]byte("\r\n"))
 	c.writer.Flush()

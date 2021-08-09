@@ -2,7 +2,9 @@ package config
 
 import (
 	"github.com/BurntSushi/toml"
-	"github.com/pengsrc/go-shared/check"
+	"go.uber.org/zap"
+
+	"github.com/beyondstorage/beyond-ftp/utils"
 )
 
 // A Config stores a configuration of BeyondFTP.
@@ -14,6 +16,7 @@ type Config struct {
 	StartPort  int               `toml:"start-port"`
 	EndPort    int               `toml:"end-port"`
 	Users      map[string]string `toml:"users"`
+	log        zap.Config        `toml:"log"`
 }
 
 // ServerSettings define all the server settings.
@@ -38,10 +41,10 @@ func LoadConfigFromFilepath(p string) *Config {
 	conf := &Config{}
 	if p != "" {
 		_, err := toml.DecodeFile(p, conf)
-		check.ErrorForExit("File not found: "+p, err)
+		utils.MustNil(err)
 	}
 	err := setDefaultValue(conf)
-	check.ErrorForExit("Config check error: ", err)
+	utils.MustNil(err)
 	return conf
 }
 

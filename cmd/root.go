@@ -8,9 +8,9 @@ import (
 	"sync/atomic"
 	"syscall"
 
-	"github.com/pengsrc/go-shared/check"
 	uuid "github.com/satori/go.uuid"
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 
 	"github.com/beyondstorage/beyond-ftp/client"
 	"github.com/beyondstorage/beyond-ftp/config"
@@ -39,7 +39,9 @@ var RootCmd = &cobra.Command{
 
 		c := config.LoadConfigFromFilepath(cfgFileFlag)
 		s, err := server.NewFTPServer(c)
-		check.ErrorForExit("server init error", err)
+		utils.MustNil(err)
+		utils.SetUpLog()
+		defer zap.L().Sync()
 		StartServer(s)
 	},
 }
@@ -50,7 +52,7 @@ func StartServer(s server.Server) {
 	for {
 		connection, addr, err := s.AcceptClient()
 		if err != nil {
-			utils.Logger.Errorf("Accept error: %v", err)
+			zap.L().Info("Server client error", zap.Error(err))
 			return
 		}
 
@@ -64,23 +66,28 @@ func serveClient(s server.Server, id, addr string, connection utils.Conn) {
 		id, addr, connection, s.Setting(), s.Storager(), s.PassiveTransferFactory, s.ActiveTransferFactory,
 	)
 
-	atomic.AddInt32(&clientCount, 1)
-	utils.Logger.Infof("FTP Client connected: ftp.connected, id: %s, RemoteAddr: %v, Total: %d", id, addr, clientCount)
+	count := atomic.AddInt32(&clientCount, 1)
+	zap.L().Info("FTP Client connected",
+		zap.String("id", id),
+		zap.String("remote address", addr),
+		zap.Int32("connection count", count),
+	)
 	c.WriteMessage(client.StatusServiceReady, "Welcome to BeyondFTP Server")
-	utils.Logger.Debugf("Accept client on: id: %s, IP: %v", id, addr)
-
 	c.HandleCommands()
 
-	utils.Logger.Debugf("Goodbye: id: %s, IP: %v", id, addr)
-	atomic.AddInt32(&clientCount, -1)
-	utils.Logger.Infof("FTP Client disconnected: ftp.disconnected, id: %s, RemoteAddr: %v, Total: %d", id, addr, clientCount)
+	count = atomic.AddInt32(&clientCount, -1)
+	zap.L().Info("FTP Client connected",
+		zap.String("id", id),
+		zap.String("remote address", addr),
+		zap.Int32("connection count", count),
+	)
 }
 
 // Execute adds all child commands to the root command sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if err := RootCmd.Execute(); err != nil {
-		check.ErrorForExit(constants.Name, err)
+		utils.MustNil(err)
 		os.Exit(-1)
 	}
 }

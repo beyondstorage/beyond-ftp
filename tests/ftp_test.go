@@ -7,9 +7,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"go.uber.org/zap"
 
 	"github.com/beyondstorage/beyond-ftp/pprof"
 	"github.com/beyondstorage/beyond-ftp/tests/kit"
+	"github.com/beyondstorage/beyond-ftp/utils"
 )
 
 type ftpServerTestBase struct {
@@ -17,6 +19,9 @@ type ftpServerTestBase struct {
 }
 
 func (b *ftpServerTestBase) SetupSuite() {
+	logger, err := zap.NewDevelopment()
+	utils.MustNil(err)
+	zap.ReplaceGlobals(logger)
 	pprof.StartPP()
 }
 
