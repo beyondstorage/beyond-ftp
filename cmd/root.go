@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"os/signal"
 	"strings"
@@ -29,9 +28,10 @@ var (
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
-	Use:   constants.Name,
-	Short: "A FTP server that persists all data to Beyond Storage.",
-	Long:  "A FTP server that persists all data to Beyond Storage.",
+	Version: constants.Version,
+	Use:     constants.Name,
+	Short:   "A FTP server that persists all data to Beyond Storage.",
+	Long:    "A FTP server that persists all data to Beyond Storage.",
 	Run: func(cmd *cobra.Command, args []string) {
 		if cfgDebugFlag {
 			pprof.StartPP()
@@ -40,15 +40,6 @@ var RootCmd = &cobra.Command{
 		s, err := server.NewFTPServer(c)
 		check.ErrorForExit("server init error", err)
 		StartServer(s)
-	},
-}
-
-var versionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "Print Beyond-FTP version",
-	Long:  "Print Beyond-FTP version",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("BeyondFTP version %s", constants.Version)
 	},
 }
 
@@ -61,8 +52,6 @@ func Execute() {
 }
 
 func init() {
-	RootCmd.AddCommand(versionCmd)
-
 	RootCmd.PersistentFlags().BoolVarP(&cfgDebugFlag, "debug", "d", false, "Enter debug mode")
 	RootCmd.PersistentFlags().StringVarP(&cfgFileFlag, "config", "c", "./config/config.example.toml", "Specify config file")
 }
