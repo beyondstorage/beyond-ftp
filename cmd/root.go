@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/beyondstorage/beyond-ftp/logger"
 	"os"
 	"os/signal"
 	"strings"
@@ -26,36 +27,45 @@ var (
 	clientCount int32
 )
 
-// RootCmd represents the base command when called without any subcommands
-var RootCmd = &cobra.Command{
-	Version: constants.Version,
-	Use:     constants.Name,
-	Short:   "A FTP server that persists all data to Beyond Storage.",
-	Long:    "A FTP server that persists all data to Beyond Storage.",
-	Run: func(cmd *cobra.Command, args []string) {
+// rootCmd represents the base command when called without any subcommands
+var rootCmd = &cobra.Command{
+	Version:      constants.Version,
+	Use:          constants.Name,
+	Short:        "A FTP server that persists all data to Beyond Storage.",
+	Long:         "A FTP server that persists all data to Beyond Storage.",
+	SilenceUsage: true,
+	RunE: func(cmd *cobra.Command, args []string) error {
 		if cfgDebugFlag {
 			pprof.StartPP()
 		}
-		c := config.LoadConfigFromFilepath(cfgFileFlag)
+		c, err := config.LoadConfigFromFilepath(cfgFileFlag)
+		if err != nil {
+			return err
+		}
 		s, err := server.NewFTPServer(c)
-		utils.MustNil(err)
-		utils.SetUpLog()
-		defer zap.L().Sync()
+		if err != nil {
+			return err
+		}
+		err = logger.SetUpLog()
+		if err != nil {
+			return err
+		}
 		StartServer(s)
+		return zap.L().Sync()
 	},
 }
 
 // Execute adds all child commands to the root command sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	if err := RootCmd.Execute(); err != nil {
-		utils.MustNil(err)
+	if err := rootCmd.Execute(); err != nil {
+		os.Exit(1)
 	}
 }
 
 func init() {
-	RootCmd.PersistentFlags().BoolVarP(&cfgDebugFlag, "debug", "d", false, "Enter debug mode")
-	RootCmd.PersistentFlags().StringVarP(&cfgFileFlag, "config", "c", "./config/config.example.toml", "Specify config file")
+	rootCmd.PersistentFlags().BoolVarP(&cfgDebugFlag, "debug", "d", false, "Enter debug mode")
+	rootCmd.PersistentFlags().StringVarP(&cfgFileFlag, "config", "c", "./config/config.example.toml", "Specify config file")
 }
 
 func StartServer(s server.Server) {
