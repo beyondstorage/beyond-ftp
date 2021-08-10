@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"os/signal"
 	"strings"
@@ -15,28 +14,28 @@ import (
 	"github.com/beyondstorage/beyond-ftp/client"
 	"github.com/beyondstorage/beyond-ftp/config"
 	"github.com/beyondstorage/beyond-ftp/constants"
+	"github.com/beyondstorage/beyond-ftp/pprof"
 	"github.com/beyondstorage/beyond-ftp/server"
 	"github.com/beyondstorage/beyond-ftp/utils"
 )
 
 var (
-	versionFlag bool
-	cfgFileFlag string
+	cfgFileFlag  string
+	cfgDebugFlag bool
 
 	clientCount int32
 )
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
-	Use:   constants.Name,
-	Short: "A FTP server that persists all data to Beyond Storage.",
-	Long:  "A FTP server that persists all data to Beyond Storage.",
+	Version: constants.Version,
+	Use:     constants.Name,
+	Short:   "A FTP server that persists all data to Beyond Storage.",
+	Long:    "A FTP server that persists all data to Beyond Storage.",
 	Run: func(cmd *cobra.Command, args []string) {
-		if versionFlag {
-			fmt.Fprintf(os.Stdout, "BeyondFTP version %s\n", constants.Version)
-			return
+		if cfgDebugFlag {
+			pprof.StartPP()
 		}
-
 		c := config.LoadConfigFromFilepath(cfgFileFlag)
 		s, err := server.NewFTPServer(c)
 		utils.MustNil(err)
@@ -44,6 +43,19 @@ var RootCmd = &cobra.Command{
 		defer zap.L().Sync()
 		StartServer(s)
 	},
+}
+
+// Execute adds all child commands to the root command sets flags appropriately.
+// This is called by main.main(). It only needs to happen once to the rootCmd.
+func Execute() {
+	if err := RootCmd.Execute(); err != nil {
+		utils.MustNil(err)
+	}
+}
+
+func init() {
+	RootCmd.PersistentFlags().BoolVarP(&cfgDebugFlag, "debug", "d", false, "Enter debug mode")
+	RootCmd.PersistentFlags().StringVarP(&cfgFileFlag, "config", "c", "./config/config.example.toml", "Specify config file")
 }
 
 func StartServer(s server.Server) {
@@ -81,20 +93,6 @@ func serveClient(s server.Server, id, addr string, connection utils.Conn) {
 		zap.String("remote address", addr),
 		zap.Int32("connection count", count),
 	)
-}
-
-// Execute adds all child commands to the root command sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
-	if err := RootCmd.Execute(); err != nil {
-		utils.MustNil(err)
-		os.Exit(-1)
-	}
-}
-
-func init() {
-	RootCmd.PersistentFlags().BoolVarP(&versionFlag, "version", "v", false, "Show version")
-	RootCmd.PersistentFlags().StringVarP(&cfgFileFlag, "config", "c", "./config/config.example.toml", "Specify config file")
 }
 
 func signalHandler(s server.Server) {
