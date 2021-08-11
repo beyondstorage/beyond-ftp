@@ -2,7 +2,6 @@ package config
 
 import (
 	"github.com/BurntSushi/toml"
-	"github.com/pengsrc/go-shared/check"
 )
 
 // A Config stores a configuration of BeyondFTP.
@@ -34,15 +33,15 @@ type PortRange struct {
 
 // LoadConfigFromFilepath loads configuration from a specified local path.
 // It returns error if file not found or decode failed.
-func LoadConfigFromFilepath(p string) *Config {
+func LoadConfigFromFilepath(p string) (*Config, error) {
 	conf := &Config{}
 	if p != "" {
-		_, err := toml.DecodeFile(p, conf)
-		check.ErrorForExit("File not found: "+p, err)
+		if _, err := toml.DecodeFile(p, conf); err != nil {
+			return nil, err
+		}
 	}
 	err := setDefaultValue(conf)
-	check.ErrorForExit("Config check error: ", err)
-	return conf
+	return conf, err
 }
 
 // setDefaultValue checks the configuration.

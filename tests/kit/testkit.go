@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
+	"runtime/debug"
 	"sort"
 	"strconv"
 	"strings"
@@ -14,8 +15,8 @@ import (
 	_ "github.com/beyondstorage/go-service-memory"
 	"github.com/beyondstorage/go-storage/v4/services"
 	"github.com/beyondstorage/go-storage/v4/types"
-	"github.com/pengsrc/go-shared/check"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 
 	"github.com/beyondstorage/beyond-ftp/client"
 	"github.com/beyondstorage/beyond-ftp/cmd"
@@ -157,7 +158,7 @@ func NewTestKitWithConfig(t *testing.T, settings *config.ServerSettings) *TestKi
 	listener := make(chan interface{})
 	cm := newConnManager()
 	mockServer, err := NewMockServer(listener, cm, settings)
-	check.ErrorForExit("server init error", err)
+	mustNil(err)
 	go cmd.StartServer(mockServer)
 
 	kit := &TestKit{
@@ -193,15 +194,15 @@ func (k *TestKit) SupportDirer() bool {
 
 func (k TestKit) TransferConnReceive(r utils.Conn) []byte {
 	bytes, err := ioutil.ReadAll(r)
-	utils.MustNil(err)
+	mustNil(err)
 	return bytes
 }
 
 func (k TestKit) TransferConnSend(conn utils.Conn, data []byte) {
 	n, err := conn.Write(data)
-	utils.MustNil(err)
+	mustNil(err)
 	assert.Equal(k.t, len(data), n)
-	utils.MustNil(conn.Close())
+	mustNil(conn.Close())
 }
 
 func (k *TestKit) PassiveConn(conn utils.Conn) utils.Conn {
@@ -261,7 +262,7 @@ func (k *TestKit) AnonymousLogin() utils.Conn {
 func (k *TestKit) Size(conn utils.Conn, path string) int {
 	size := k.Send(conn, fmt.Sprintf("SIZE %s", path)).Success().message()[0]
 	fileSize, err := strconv.Atoi(size)
-	utils.MustNil(err)
+	mustNil(err)
 	return fileSize
 }
 
@@ -331,20 +332,20 @@ func (k *TestKit) Send(conn utils.Conn, cmd string) *model {
 
 func send(writer *bufio.Writer, cmd string) {
 	_, err := writer.WriteString(fmt.Sprintf("%s\n", cmd))
-	utils.MustNil(err)
+	mustNil(err)
 	err = writer.Flush()
-	utils.MustNil(err)
+	mustNil(err)
 }
 
 func response(reader *bufio.Reader) (code, string) {
 	respString, err := reader.ReadString('\n')
-	utils.MustNil(err)
+	mustNil(err)
 
 	if respString[3] != '-' {
 		respString = respString[:len(respString)-2]
 		resp := strings.SplitN(respString, " ", 2)
 		c, err := strconv.Atoi(resp[0])
-		utils.MustNil(err)
+		mustNil(err)
 		msg := resp[1]
 		return code(c), msg
 	} else {
@@ -352,13 +353,19 @@ func response(reader *bufio.Reader) (code, string) {
 		msg := respString[4:]
 		for {
 			line, err := reader.ReadString('\n')
-			utils.MustNil(err)
+			mustNil(err)
 			if len(line) > 4 && line[3] == ' ' && line[:3] == respCode {
 				c, err := strconv.Atoi(respCode)
-				utils.MustNil(err)
+				mustNil(err)
 				return code(c), msg
 			}
 			msg += line
 		}
+	}
+}
+
+func mustNil(e error) {
+	if e != nil {
+		zap.L().Fatal("error occurred", zap.Error(e), zap.String("trace", string(debug.Stack())))
 	}
 }

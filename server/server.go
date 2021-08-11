@@ -11,10 +11,9 @@ import (
 	_ "github.com/beyondstorage/go-service-memory"
 	"github.com/beyondstorage/go-storage/v4/services"
 	"github.com/beyondstorage/go-storage/v4/types"
-	"github.com/pengsrc/go-shared/check"
+	"go.uber.org/zap"
 
 	"github.com/beyondstorage/beyond-ftp/config"
-	"github.com/beyondstorage/beyond-ftp/constants"
 	"github.com/beyondstorage/beyond-ftp/transfer"
 	"github.com/beyondstorage/beyond-ftp/utils"
 )
@@ -51,11 +50,10 @@ func (s *FTPServer) Start() {
 		"%s:%d", s.setting.ListenHost, s.setting.ListenPort,
 	))
 	if err != nil {
-		utils.Logger.Fatalf("Cannot listen: %v", err)
+		zap.L().Fatal("Cannot listen: ", zap.Error(err))
 	}
 
-	utils.Logger.Infof("Listening... %v", s.Listener.Addr())
-	check.ErrorForExit(constants.Name, err)
+	zap.L().Info("Listening...", zap.String("address", s.Listener.Addr().String()))
 }
 
 func (s *FTPServer) PassiveTransferFactory(listenHost string, portRange *config.PortRange) (transfer.Handler, int, error) {
@@ -79,7 +77,7 @@ func (s *FTPServer) PassiveTransferFactory(listenHost string, portRange *config.
 	}
 
 	if err != nil || tcpListener == nil {
-		utils.Logger.Errorf("Could not listen: %v", err)
+		zap.L().Fatal("Cannot listen: ", zap.Error(err))
 		return nil, 0, errors.New("cannot listen")
 	}
 

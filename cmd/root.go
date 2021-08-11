@@ -7,13 +7,14 @@ import (
 	"sync/atomic"
 	"syscall"
 
-	"github.com/pengsrc/go-shared/check"
 	uuid "github.com/satori/go.uuid"
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 
 	"github.com/beyondstorage/beyond-ftp/client"
 	"github.com/beyondstorage/beyond-ftp/config"
 	"github.com/beyondstorage/beyond-ftp/constants"
+	"github.com/beyondstorage/beyond-ftp/logger"
 	"github.com/beyondstorage/beyond-ftp/pprof"
 	"github.com/beyondstorage/beyond-ftp/server"
 	"github.com/beyondstorage/beyond-ftp/utils"
@@ -26,34 +27,45 @@ var (
 	clientCount int32
 )
 
-// RootCmd represents the base command when called without any subcommands
-var RootCmd = &cobra.Command{
-	Version: constants.Version,
-	Use:     constants.Name,
-	Short:   "A FTP server that persists all data to Beyond Storage.",
-	Long:    "A FTP server that persists all data to Beyond Storage.",
-	Run: func(cmd *cobra.Command, args []string) {
+// rootCmd represents the base command when called without any subcommands
+var rootCmd = &cobra.Command{
+	Version:      constants.Version,
+	Use:          constants.Name,
+	Short:        "A FTP server that persists all data to Beyond Storage.",
+	Long:         "A FTP server that persists all data to Beyond Storage.",
+	SilenceUsage: true,
+	RunE: func(cmd *cobra.Command, args []string) error {
 		if cfgDebugFlag {
 			pprof.StartPP()
 		}
-		c := config.LoadConfigFromFilepath(cfgFileFlag)
+		c, err := config.LoadConfigFromFilepath(cfgFileFlag)
+		if err != nil {
+			return err
+		}
 		s, err := server.NewFTPServer(c)
-		check.ErrorForExit("server init error", err)
+		if err != nil {
+			return err
+		}
+		err = logger.SetUpLog()
+		if err != nil {
+			return err
+		}
 		StartServer(s)
+		return zap.L().Sync()
 	},
 }
 
 // Execute adds all child commands to the root command sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	if err := RootCmd.Execute(); err != nil {
-		check.ErrorForExit(constants.Name, err)
+	if err := rootCmd.Execute(); err != nil {
+		os.Exit(1)
 	}
 }
 
 func init() {
-	RootCmd.PersistentFlags().BoolVarP(&cfgDebugFlag, "debug", "d", false, "Enter debug mode")
-	RootCmd.PersistentFlags().StringVarP(&cfgFileFlag, "config", "c", "./config/config.example.toml", "Specify config file")
+	rootCmd.PersistentFlags().BoolVarP(&cfgDebugFlag, "debug", "d", false, "Enter debug mode")
+	rootCmd.PersistentFlags().StringVarP(&cfgFileFlag, "config", "c", "./config/config.example.toml", "Specify config file")
 }
 
 func StartServer(s server.Server) {
@@ -62,7 +74,7 @@ func StartServer(s server.Server) {
 	for {
 		connection, addr, err := s.AcceptClient()
 		if err != nil {
-			utils.Logger.Errorf("Accept error: %v", err)
+			zap.L().Info("Server client error", zap.Error(err))
 			return
 		}
 
@@ -76,16 +88,21 @@ func serveClient(s server.Server, id, addr string, connection utils.Conn) {
 		id, addr, connection, s.Setting(), s.Storager(), s.PassiveTransferFactory, s.ActiveTransferFactory,
 	)
 
-	atomic.AddInt32(&clientCount, 1)
-	utils.Logger.Infof("FTP Client connected: ftp.connected, id: %s, RemoteAddr: %v, Total: %d", id, addr, clientCount)
+	count := atomic.AddInt32(&clientCount, 1)
+	zap.L().Info("FTP Client connected",
+		zap.String("id", id),
+		zap.String("remote address", addr),
+		zap.Int32("connection count", count),
+	)
 	c.WriteMessage(client.StatusServiceReady, "Welcome to BeyondFTP Server")
-	utils.Logger.Debugf("Accept client on: id: %s, IP: %v", id, addr)
-
 	c.HandleCommands()
 
-	utils.Logger.Debugf("Goodbye: id: %s, IP: %v", id, addr)
-	atomic.AddInt32(&clientCount, -1)
-	utils.Logger.Infof("FTP Client disconnected: ftp.disconnected, id: %s, RemoteAddr: %v, Total: %d", id, addr, clientCount)
+	count = atomic.AddInt32(&clientCount, -1)
+	zap.L().Info("FTP Client connected",
+		zap.String("id", id),
+		zap.String("remote address", addr),
+		zap.Int32("connection count", count),
+	)
 }
 
 func signalHandler(s server.Server) {
