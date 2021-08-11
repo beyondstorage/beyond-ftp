@@ -11,7 +11,6 @@ import (
 
 	"github.com/beyondstorage/beyond-ftp/pprof"
 	"github.com/beyondstorage/beyond-ftp/tests/kit"
-	"github.com/beyondstorage/beyond-ftp/utils"
 )
 
 type ftpServerTestBase struct {
@@ -20,7 +19,7 @@ type ftpServerTestBase struct {
 
 func (b *ftpServerTestBase) SetupSuite() {
 	logger, err := zap.NewDevelopment()
-	utils.MustNil(err)
+	assert.Nil(b.T(), err)
 	zap.ReplaceGlobals(logger)
 	pprof.StartPP()
 }

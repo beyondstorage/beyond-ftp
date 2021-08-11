@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"github.com/beyondstorage/beyond-ftp/logger"
 	"os"
 	"os/signal"
 	"strings"
@@ -15,6 +14,7 @@ import (
 	"github.com/beyondstorage/beyond-ftp/client"
 	"github.com/beyondstorage/beyond-ftp/config"
 	"github.com/beyondstorage/beyond-ftp/constants"
+	"github.com/beyondstorage/beyond-ftp/logger"
 	"github.com/beyondstorage/beyond-ftp/pprof"
 	"github.com/beyondstorage/beyond-ftp/server"
 	"github.com/beyondstorage/beyond-ftp/utils"
