@@ -61,7 +61,16 @@ func (s *FTPServer) PassiveTransferFactory(listenHost string, portRange *config.
 	var err error
 	var localAddr *net.TCPAddr
 
-	for start := portRange.Start; start < portRange.End; start++ {
+	maxTry := portRange.End - portRange.Start
+
+	// Making sure we trying a reasonable amount of ports before giving up.
+	if maxTry < 10 {
+		maxTry = 10
+	} else if maxTry > 1000 {
+		maxTry = 1000
+	}
+
+	for i := 0; i < maxTry; i++ {
 		port := portRange.Start + rand.Intn(portRange.End-portRange.Start)
 		localAddr, err = net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", listenHost, port))
 		if err != nil {
@@ -71,13 +80,11 @@ func (s *FTPServer) PassiveTransferFactory(listenHost string, portRange *config.
 		tcpListener, err = net.ListenTCP("tcp", localAddr)
 		if err == nil {
 			break
-		} else {
-			continue
 		}
 	}
 
 	if err != nil || tcpListener == nil {
-		zap.L().Fatal("Cannot listen: ", zap.Error(err))
+		zap.L().Error("Cannot listen: ", zap.Error(err))
 		return nil, 0, errors.New("cannot listen")
 	}
 
