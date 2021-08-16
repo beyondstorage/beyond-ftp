@@ -74,7 +74,7 @@ func StartServer(s server.Server) {
 	for {
 		connection, addr, err := s.AcceptClient()
 		if err != nil {
-			zap.L().Info("Server client error", zap.Error(err))
+			zap.L().Info("Server stopped", zap.Error(err))
 			return
 		}
 

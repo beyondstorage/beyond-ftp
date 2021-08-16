@@ -3,6 +3,7 @@ package transfer
 import (
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/beyondstorage/beyond-ftp/utils"
 )
@@ -16,15 +17,9 @@ type ActiveHandler struct {
 
 // Open opens connection.
 func (a *ActiveHandler) Open() (utils.Conn, error) {
-	localAddr, _ := net.ResolveTCPAddr("tcp", ":20")
-
-	// TODO: Support dialing with timeout
-	// Issues:
-	//	https://github.com/golang/go/issues/3097
-	// 	https://github.com/golang/go/issues/4842
-	conn, err := net.DialTCP("tcp", localAddr, a.RemoteAddr)
+	conn, err := net.DialTimeout("tcp", a.RemoteAddr.String(), 5*time.Second)
 	if err != nil {
-		return nil, fmt.Errorf("Could not establish active connection due: %v", err)
+		return nil, fmt.Errorf("could not establish active connection: %v", err)
 	}
 
 	// Keep connection as it will be closed by Close().

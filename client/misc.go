@@ -20,8 +20,7 @@ func (c *Handler) handleSTAT() {
 
 func (c *Handler) handleSTATServer() {
 	c.writeLine("213- FTP server status:")
-	duration := time.Now().UTC().Sub(c.connectedAt)
-	duration -= duration % time.Second
+	duration := time.Now().UTC().Sub(c.connectedAt).Round(time.Second)
 	c.writeLine(fmt.Sprintf(
 		"Connected to %s:%d from %s for %s",
 		c.serverSetting.ListenHost, c.serverSetting.ListenPort,
