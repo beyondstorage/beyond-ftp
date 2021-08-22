@@ -135,8 +135,8 @@ func (t *ftpServerBaseCommandTest) TestListFiles() {
 
 	fileList := tk.List(conn, "")
 	assert.Equal(t.T(), []string{
-		"d--------- 1 ftp ftp            0  Jan  1 00:00  test",
-		"d--------- 1 ftp ftp            0  Jan  1 00:00  test1",
+		"d--------- 1 ftp ftp            0  Jan  1 00:00 test",
+		"d--------- 1 ftp ftp            0  Jan  1 00:00 test1",
 	}, fileList)
 }
 
@@ -150,13 +150,13 @@ func (t *ftpServerBaseCommandTest) TestDeleteFile() {
 	tk.MustSuccess(conn, "mkd test1")
 	fileList := tk.List(conn, "")
 	assert.Equal(t.T(), []string{
-		"d--------- 1 ftp ftp            0  Jan  1 00:00  test",
-		"d--------- 1 ftp ftp            0  Jan  1 00:00  test1",
+		"d--------- 1 ftp ftp            0  Jan  1 00:00 test",
+		"d--------- 1 ftp ftp            0  Jan  1 00:00 test1",
 	}, fileList)
 	tk.MustSuccess(conn, "RMD test1")
 	fileList = tk.List(conn, "")
 	assert.Equal(t.T(), []string{
-		"d--------- 1 ftp ftp            0  Jan  1 00:00  test",
+		"d--------- 1 ftp ftp            0  Jan  1 00:00 test",
 	}, fileList)
 }
 
@@ -169,7 +169,7 @@ func (t *ftpServerBaseCommandTest) TestRenameFile() {
 	tk.Store(conn, "file1", []byte("file1 content"))
 	fileList := tk.List(conn, "")
 	assert.Equal(t.T(), []string{
-		"-rwxrwxrwx 1 ftp ftp           13  Jan  1 00:00  file1",
+		"-rwxrwxrwx 1 ftp ftp           13  Jan  1 00:00 file1",
 	}, fileList)
 
 	tk.MustSuccess(conn, "rnfr file1")
@@ -177,7 +177,7 @@ func (t *ftpServerBaseCommandTest) TestRenameFile() {
 
 	fileList = tk.List(conn, "")
 	assert.Equal(t.T(), []string{
-		"-rwxrwxrwx 1 ftp ftp           13  Jan  1 00:00  test",
+		"-rwxrwxrwx 1 ftp ftp           13  Jan  1 00:00 test",
 	}, fileList)
 
 	tk.MustFailure(conn, "rnto test1")
@@ -192,8 +192,8 @@ func (t *ftpServerBaseCommandTest) TestStoreFile() {
 	tk.Store(conn, "file1", []byte("file1 content"))
 	fileList := tk.List(conn, "")
 	assert.Equal(t.T(), []string{
-		"-rwxrwxrwx 1 ftp ftp           13  Jan  1 00:00  file1",
-		"d--------- 1 ftp ftp            0  Jan  1 00:00  test",
+		"-rwxrwxrwx 1 ftp ftp           13  Jan  1 00:00 file1",
+		"d--------- 1 ftp ftp            0  Jan  1 00:00 test",
 	}, fileList)
 	tk.Send(conn, "size file1").Success("13")
 
