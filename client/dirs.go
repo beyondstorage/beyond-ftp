@@ -30,7 +30,6 @@ func (c *Handler) handleCWD() {
 	}
 
 	p := c.absPath(c.param)
-
 	_, err := c.getDirInfo(p)
 	if err != nil {
 		c.WriteMessage(StatusActionNotTaken, fmt.Sprintf("CD issue: %v", err))
@@ -103,7 +102,7 @@ func (c *Handler) handleLIST() {
 
 	fileInfos, err := c.listFile(dir)
 	if err != nil {
-		c.WriteMessage(StatusActionNotTaken, err.Error())
+		c.WriteMessage(StatusFileActionNotTaken, err.Error())
 		return
 	}
 
@@ -124,40 +123,44 @@ func (c *Handler) handleLIST() {
 }
 
 func (c *Handler) listFile(p string) ([]*fileInfo, error) {
-	iterator, err := c.storager.List(p)
+	object, err := c.storager.Stat(p)
 	if err != nil {
 		return nil, err
 	}
 
 	var files []*fileInfo
-	for {
-		o, err := iterator.Next()
+	if object.GetMode().IsDir() {
+		iterator, err := c.storager.List(p)
 		if err != nil {
-			if errors.Is(err, types.IterateDone) {
-				break
-			} else {
-				return nil, err
-			}
+			return nil, err
 		}
-		files = append(files, &fileInfo{o})
-	}
-	return files, nil
-}
 
-func fileStat(file *fileInfo) string {
-	return fmt.Sprintf(
-		"%s 1 ftp ftp %12d %s %s",
-		file.Mode(),
-		file.Size(),
-		file.ModTime().Format(" Jan _2 15:04 "),
-		file.Name(),
-	)
+		for {
+			o, err := iterator.Next()
+			if err != nil {
+				if errors.Is(err, types.IterateDone) {
+					break
+				} else {
+					return nil, err
+				}
+			}
+			files = append(files, &fileInfo{o})
+		}
+	} else {
+		files = append(files, &fileInfo{object})
+	}
+
+	return files, nil
 }
 
 func (c *Handler) dirList(w io.Writer, files []*fileInfo) {
 	for _, file := range files {
-		stat := fileStat(file)
-		if _, err := fmt.Fprintf(w, "%s\r\n", stat); err != nil {
+		if _, err := fmt.Fprintf(w, "%s 1 ftp ftp %12d %s %s\r\n",
+			file.Mode(),
+			file.Size(),
+			file.ModTime().Format(" Jan _2 15:04"),
+			file.Name(),
+		); err != nil {
 			return
 		}
 	}

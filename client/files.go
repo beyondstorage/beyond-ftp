@@ -193,20 +193,12 @@ func (c *Handler) handleSIZE() {
 func (c *Handler) handleSTATFile() {
 	path := c.absPath(c.param)
 
-	c.writeLine("213-Status follows:")
-	if object, err := c.storager.Stat(path); err == nil {
-		if object.GetMode()&types.ModeDir == 1 {
-			fileInfos, err := c.listFile(path)
-			if err != nil {
-				c.WriteMessage(StatusActionNotTaken, err.Error())
-				return
-			}
-			c.dirList(c.writer, fileInfos)
-		} else {
-			c.writeLine(fileStat(&fileInfo{object}))
-		}
+	fileInfos, err := c.listFile(path)
+	if err != nil {
+		c.WriteMessage(StatusFileActionNotTaken, err.Error())
+		return
 	}
-
+	c.dirList(c.writer, fileInfos)
 	c.writeLine("213 End of status")
 }
 
