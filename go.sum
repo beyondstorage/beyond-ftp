@@ -52,8 +52,9 @@ github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZx
 github.com/beyondstorage/go-integration-test/v4 v4.3.0/go.mod h1:HKgzemQZpxoHBL49JYEUnLTb5eteUhzcvmmPL7EDT/Y=
 github.com/beyondstorage/go-service-memory v0.1.1-0.20210803153001-a89e179ba173 h1:Q9gD2LrlBV/3WEbQjAH/tEzkVGzn/50j7YtKH6TaRmU=
 github.com/beyondstorage/go-service-memory v0.1.1-0.20210803153001-a89e179ba173/go.mod h1:AACPfR4zRmOxqbXhmjcoevlbRRl9Kja3AoB/r1HSfUc=
-github.com/beyondstorage/go-storage/v4 v4.4.0 h1:sWURraKFjNR4qpwthr45cAGOIx6EOLrrJcz6su4Je30=
 github.com/beyondstorage/go-storage/v4 v4.4.0/go.mod h1:mc9VzBImjXDg1/1sLfta2MJH79elfM6m47ZZvZ+q/Uw=
+github.com/beyondstorage/go-storage/v4 v4.6.0 h1:a05dtbYjMZB7LrUSvVzzHwlx33B4yEmd5oQB7Itk7VY=
+github.com/beyondstorage/go-storage/v4 v4.6.0/go.mod h1:mc9VzBImjXDg1/1sLfta2MJH79elfM6m47ZZvZ+q/Uw=
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/bketelsen/crypt v0.0.4/go.mod h1:aI6NrJ0pMGgvZKL1iVgXLnfIFJtfV+bKCoqOes/6LfM=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
