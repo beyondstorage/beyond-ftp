@@ -12,8 +12,6 @@ import (
 	"strings"
 	"testing"
 
-	_ "github.com/beyondstorage/go-service-memory"
-	"github.com/beyondstorage/go-storage/v4/services"
 	"github.com/beyondstorage/go-storage/v4/types"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
@@ -76,7 +74,7 @@ func (m *MockServer) Setting() *config.ServerSettings {
 }
 
 func NewMockServer(listener chan interface{}, cm *connManager, setting *config.ServerSettings) (*MockServer, error) {
-	storager, err := services.NewStoragerFromString(setting.Service)
+	storager, err := utils.NewStoragerFromString(setting.Service)
 	if err != nil {
 		return nil, err
 	}

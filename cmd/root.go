@@ -69,6 +69,7 @@ func init() {
 }
 
 func StartServer(s server.Server) {
+	utils.StartStream(s.Storager())
 	s.Start()
 	go signalHandler(s)
 	for {
