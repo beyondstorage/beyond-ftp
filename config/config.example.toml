@@ -7,7 +7,7 @@ service = "memory:///ftp"
 host = "localhost"
 
 # FTP server port.
-port = 21
+port = 2121
 
 # FTP server passive connection host.
 public-host = "127.0.0.1"

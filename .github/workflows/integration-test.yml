@@ -1,0 +1,43 @@
+name: "Integration Test"
+
+on: [push, pull_request]
+
+jobs:
+  integration_test:
+    name: Integration Test
+    runs-on: ${{ matrix.os }}
+    env:
+      STORAGE_FTP_INTEGRATION_TEST: on
+      STORAGE_FTP_CREDENTIAL: basic:anonymous:password
+      STORAGE_FTP_ENDPOINT: tcp:127.0.0.1:2121
+
+    strategy:
+      matrix:
+        go: ["1.15", "1.16"]
+        os: [ubuntu-latest]
+
+    steps:
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go }}
+
+      - name: Checkout beyong-ftp repository
+        uses: actions/checkout@v2
+        with:
+          path: beyond-ftp
+
+      - name: Checkout go-service-ftp repository
+        uses: actions/checkout@v2
+        with:
+          repository: beyondstorage/go-service-ftp
+          path: go-service-ftp
+
+      - name: Build
+        run: cd beyond-ftp && make build
+
+      - name: Start FTP server
+        run: cd beyond-ftp && bin/beyond-ftp &
+
+      - name: Integration Test
+        run: cd go-service-ftp && make integration_test
