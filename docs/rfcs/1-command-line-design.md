@@ -20,7 +20,6 @@ So I propose the following commands:
 | config  | c         |              | config file path           |
 | host    |           | 127.0.0.1    | server listen host         |
 | port    | p         | 21           | server listen port         |
-| service |           | memory://ftp | storager connection string |
 | debug   | d         | false        | start with debug mode      |
 
 
@@ -30,9 +29,7 @@ So I propose the following commands:
 
 `host` and `port` provide the host and port that the server should listend. The default value is `127.0.0.1:21`.
 
-`service` is the storager connection string, default value is "memory://ftp" which is a memory storager, the data will lose after server stop.
-
-`debug` indicate the server start with debug mode. Debug mode will print log with debug level and provide profiles.
+`debug` indicate the server start with debug mode. Debug mode will print log with debug level and provide profiles, and use memory as under storage.
 
 The other configure can be found in `config/config.example.toml`.
 
