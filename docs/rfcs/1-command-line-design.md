@@ -7,23 +7,29 @@
 
 ## Background
 
-There are many different configs can be set in Beyond-FTP, such as storager type, host, and port. It is useful to design a command line interface to make some of them easy to configurable.
+Command line is a interface to use the software, user can use it to control the software's behavior.
 
 ## Proposal
 
-So I propose the following commands:
+A command line program include the `commands`, `flags` and `args`. For Beyond-FTP, they are:
 
-| name    | shorthand | default      | usage                      |
-|---------|:---------:|--------------|----------------------------|
-| version | v         |              | show beyond-ftp version    |
-| help    | h         |              | show usage of beyond-ftp   |
-| config  | c         |              | config file path           |
-| host    |           | 127.0.0.1    | server listen host         |
-| port    | p         | 21           | server listen port         |
-| debug   | d         | false        | start with debug mode      |
+- subcommands
 
+| name    | usage                      |
+|---------|----------------------------|
+| version | show beyond-ftp version    |
+| help    | show usage of beyond-ftp   |
 
-## Rationale
+These two subcommands does not have any `flags` or `args`.
+
+- flags
+
+| name   | shorthand | default   | type   | require | usage                        |
+|--------|-----------|-----------|--------|---------|------------------------------|
+| config | c         |           | string | N       | config file path             |
+| host   |           | 127.0.0.1 | string | N       | server listen host           |
+| port   | p         | 21        | number | N       | server listen port           |
+| debug  | d         | false     | bool   | N       | start server with debug mode |
 
 `config` provide a config file to start FTP server, if no file is specified, the configures will use its default value.
 
@@ -31,10 +37,21 @@ So I propose the following commands:
 
 `debug` indicate the server start with debug mode. Debug mode will print log with debug level and provide profiles, and use memory as under storage.
 
-The other configure can be found in `config/config.example.toml`.
+- args
+
+N/A
+
+- config format
+
+use `toml` as the config format, it is easy for human read.
+
+- apply order
 
 Server will first use the command line specifie value, if no specified, use the value in config file, then, the default value.
 
+## Rationale
+
+N/A
 
 ## Compatibility
 
@@ -42,4 +59,5 @@ N/A
 
 ## Implementation
 
-N/A
+- use lib https://github.com/urfave/cli to parse the command and flag.
+- Beyond-FTP return 0 if normally exit, other for error occur.
