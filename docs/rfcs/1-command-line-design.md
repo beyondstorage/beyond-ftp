@@ -41,9 +41,18 @@ These two subcommands does not have any `flags` or `args`.
 
 N/A
 
-- config format
+- config file
 
-use `toml` as the config format, it is easy for human read.
+use `toml` as the config file format, it is easy for human read. It contains the following fields:
+| name        | example        | type   | comment                               |
+|-------------|----------------|--------|---------------------------------------|
+| service     | memory://ftp   | string | connection string for Storager init   |
+| host        | 127.0.0.1      | string | server listen host                    |
+| port        | 21             | number | server listen port                    |
+| public-host | 127.0.0.1      | string | server passive connection listen host |
+| users       | anonymous = "" |        | server usename and password           |
+
+an example config file will be provided under `config` directory.
 
 - apply order
 
