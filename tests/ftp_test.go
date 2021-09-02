@@ -201,15 +201,6 @@ func (t *ftpServerBaseCommandTest) TestStoreFile() {
 	file := tk.Retrieve(conn, "file1")
 	assert.Equal(t.T(), []byte("file1 content"), file)
 
-	tk.Append(conn, "file1", []byte(" appended"))
-	file = tk.Retrieve(conn, "file1")
-	assert.Equal(t.T(), []byte("file1 content appended"), file)
-	tk.Send(conn, "size file1").Success("22")
-	tk.Store(conn, "file1", []byte("file1 new content"))
-	file = tk.Retrieve(conn, "file1")
-	assert.Equal(t.T(), []byte("file1 new content"), file)
-	tk.Send(conn, "size file1").Success("17")
-
 	size := 4 * 1024 * 1024
 	content := make([]byte, size)
 	rand.Read(content)

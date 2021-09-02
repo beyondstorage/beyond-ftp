@@ -1,17 +1,11 @@
 package client
 
 import (
-	"bytes"
-	"context"
-	"errors"
 	"fmt"
-	"io"
 	"strconv"
 
 	"github.com/beyondstorage/go-storage/v4/pairs"
-	"github.com/beyondstorage/go-storage/v4/services"
 	"github.com/beyondstorage/go-storage/v4/types"
-	"github.com/beyondstorage/go-stream"
 
 	"github.com/beyondstorage/beyond-ftp/utils"
 )
@@ -19,20 +13,6 @@ import (
 func (c *Handler) handleSTOR() {
 	path := c.absPath(c.param)
 
-	c.storeOrAppend(path, false)
-}
-
-func (c *Handler) handleAPPE() {
-	_, ok := c.storager.(types.Appender)
-	if !ok {
-		c.WriteMessage(StatusCommandNotImplemented, "this type of storage is not support append")
-		return
-	}
-	path := c.absPath(c.param)
-	c.storeOrAppend(path, true)
-}
-
-func (c *Handler) storeOrAppend(path string, append bool) {
 	c.ctxRest = 0
 	tr, err := c.TransferOpen()
 	if err != nil {
@@ -40,7 +20,7 @@ func (c *Handler) storeOrAppend(path string, append bool) {
 		return
 	}
 
-	if err := c.upload(path, tr, append); err != nil {
+	if err := c.upload(path, tr); err != nil {
 		c.TransferClose()
 		c.WriteMessage(StatusFileActionNotTaken, err.Error())
 		return
@@ -55,66 +35,14 @@ func (c *Handler) storeOrAppend(path string, append bool) {
 	}
 }
 
-func (c *Handler) upload(path string, tr utils.Conn, append bool) error {
-	if appender, ok := c.storager.(types.Appender); ok {
-		object, err := c.storager.Stat(path)
-		if err != nil && !errors.Is(err, services.ErrObjectNotExist) {
-			return err
-		}
-
-		if !append || errors.Is(err, services.ErrObjectNotExist) {
-			object, err = appender.CreateAppendWithContext(c.commandAbortCtx, path)
-			if err != nil {
-				return err
-			}
-		}
-		
-		if err = writeToObject(c.commandAbortCtx, stream.PersistMethodAppend, path, tr, c.storager, object); err != nil {
-			return err
-		}
-		return nil
-	}
-
-	if err := writeToObject(c.commandAbortCtx, stream.PersistMethodMultipart, path, tr, c.storager, nil); err != nil {
-		return err
-	}
-	return nil
-}
-
-func writeToObject(ctx context.Context, label, path string, r io.Reader, storager types.Storager, o *types.Object) error {
-	b := utils.Branch(label, path)
-	if b != nil {
-		_, err := b.ReadFrom(r)
-		if err != nil {
-			return err
-		}
-		return b.Complete()
-	}
-
-	file := new(bytes.Buffer)
-	size, err := io.Copy(file, r)
+func (c *Handler) upload(path string, tr utils.Conn) error {
+	writer := utils.NewStoragerWriter(path, c.storager)
+	_, err := writer.ReadFrom(tr)
 	if err != nil {
 		return err
 	}
-	switch label {
-	case stream.PersistMethodAppend:
-		appender := storager.(types.Appender)
-		_, err = appender.WriteAppendWithContext(ctx, o, file, size)
-		if err != nil {
-			return err
-		}
-		err = appender.CommitAppendWithContext(ctx, o)
-		if err != nil {
-			return err
-		}
-	case stream.PersistMethodMultipart:
-		_, err := storager.WriteWithContext(ctx, path, file, size)
-		return err
-	default:
-		return fmt.Errorf("label %s not support", label)
-	}
 
-	return nil
+	return writer.Complete()
 }
 
 func (c *Handler) handleRETR() {

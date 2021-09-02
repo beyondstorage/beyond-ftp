@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"sync/atomic"
 
 	_ "github.com/beyondstorage/go-service-memory"
@@ -15,32 +17,58 @@ const (
 )
 
 var (
-	streamMap    map[string]*stream.Stream
-	branchId     uint64
+	s        *stream.Stream
+	branchId uint64
 )
 
 func NewStoragerFromString(connString string) (types.Storager, error) {
 	return services.NewStoragerFromString(connString)
 }
 
-func Branch(label, path string) *stream.Branch {
-	if s, ok := streamMap[label]; ok {
-		b, err := s.StartBranch(atomic.AddUint64(&branchId, 1), path)
-		if err == nil {
-			return b
-		}
+type StoragerWriter struct {
+	b *stream.Branch
+
+	path     string
+	storager types.Storager
+}
+
+func (x *StoragerWriter) ReadFrom(r io.Reader) (n int64, err error) {
+	if x.b != nil {
+		return x.b.ReadFrom(r)
+	}
+
+	file := new(bytes.Buffer)
+	size, err := io.Copy(file, r)
+	if err != nil {
+		return 0, err
+	}
+
+	return x.storager.Write(x.path, file, size)
+}
+
+func (x *StoragerWriter) Complete() error {
+	if x.b != nil {
+		return x.b.Complete()
 	}
 	return nil
 }
 
-func StartStream(under types.Storager) {
-	streamMap = make(map[string]*stream.Stream)
-	for _, method := range []string{stream.PersistMethodAppend, stream.PersistMethodMultipart} {
-		s, err := newStream(method, under)
+func NewStoragerWriter(path string, storager types.Storager) *StoragerWriter {
+	if s != nil {
+		b, err := s.StartBranch(atomic.AddUint64(&branchId, 1), path)
 		if err == nil {
-			go s.Serve()
-			streamMap[method] = s
+			return &StoragerWriter{b: b, storager: storager}
 		}
+	}
+
+	return &StoragerWriter{path: path, storager: storager}
+}
+
+func StartStream(under types.Storager) {
+	var err error
+	s, err = newStream(stream.PersistMethodMultipart, under)
+	if err == nil {
+		s.Serve()
 	}
 }
 

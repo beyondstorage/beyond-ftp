@@ -290,10 +290,6 @@ func (k *TestKit) Store(conn utils.Conn, path string, data []byte) {
 	k.transferFile(conn, path, data, "STOR")
 }
 
-func (k *TestKit) Append(conn utils.Conn, path string, data []byte) {
-	k.transferFile(conn, path, data, "APPE")
-}
-
 func (k *TestKit) Retrieve(conn utils.Conn, path string) []byte {
 	passive := k.PassiveConn(conn)
 
