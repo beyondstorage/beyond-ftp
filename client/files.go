@@ -1,14 +1,10 @@
 package client
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
-	"io"
 	"strconv"
 
 	"github.com/beyondstorage/go-storage/v4/pairs"
-	"github.com/beyondstorage/go-storage/v4/services"
 	"github.com/beyondstorage/go-storage/v4/types"
 
 	"github.com/beyondstorage/beyond-ftp/utils"
@@ -17,20 +13,6 @@ import (
 func (c *Handler) handleSTOR() {
 	path := c.absPath(c.param)
 
-	c.storeOrAppend(path, false)
-}
-
-func (c *Handler) handleAPPE() {
-	_, ok := c.storager.(types.Appender)
-	if !ok {
-		c.WriteMessage(StatusCommandNotImplemented, "this type of storage is not support append")
-		return
-	}
-	path := c.absPath(c.param)
-	c.storeOrAppend(path, true)
-}
-
-func (c *Handler) storeOrAppend(path string, append bool) {
 	c.ctxRest = 0
 	tr, err := c.TransferOpen()
 	if err != nil {
@@ -38,7 +20,7 @@ func (c *Handler) storeOrAppend(path string, append bool) {
 		return
 	}
 
-	if err := c.upload(path, tr, append); err != nil {
+	if err := c.upload(path, tr); err != nil {
 		c.TransferClose()
 		c.WriteMessage(StatusFileActionNotTaken, err.Error())
 		return
@@ -53,55 +35,14 @@ func (c *Handler) storeOrAppend(path string, append bool) {
 	}
 }
 
-func (c *Handler) upload(path string, tr utils.Conn, append bool) error {
-	if appender, ok := c.storager.(types.Appender); ok {
-		object, err := c.storager.Stat(path)
-		if err != nil && !errors.Is(err, services.ErrObjectNotExist) {
-			return err
-		}
-
-		if !append || errors.Is(err, services.ErrObjectNotExist) {
-			object, err = appender.CreateAppendWithContext(c.commandAbortCtx, path)
-			if err != nil {
-				return err
-			}
-		}
-
-		file, size, err := c.cacheFile(tr)
-		if err != nil {
-			return err
-		}
-
-		_, err = appender.WriteAppendWithContext(c.commandAbortCtx, object, file, size)
-		if err != nil {
-			return err
-		}
-		err = appender.CommitAppendWithContext(c.commandAbortCtx, object)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-
-	file, size, err := c.cacheFile(tr)
+func (c *Handler) upload(path string, tr utils.Conn) error {
+	writer := utils.NewStoragerWriter(path, c.storager)
+	_, err := writer.ReadFrom(tr)
 	if err != nil {
 		return err
 	}
-	_, err = c.storager.WriteWithContext(c.commandAbortCtx, path, file, size)
-	if err != nil {
-		return err
-	}
-	return nil
-}
 
-func (c *Handler) cacheFile(tr utils.Conn) (io.Reader, int64, error) {
-	file := new(bytes.Buffer)
-	size, err := io.Copy(file, tr)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return file, size, nil
+	return writer.Complete()
 }
 
 func (c *Handler) handleRETR() {

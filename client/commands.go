@@ -95,7 +95,7 @@ func init() {
 	commandsMap[MDTM] = &CommandDescription{Fn: (*Handler).handleMDTM}
 	commandsMap[RETR] = &CommandDescription{Fn: (*Handler).handleRETR}
 	commandsMap[STOR] = &CommandDescription{Fn: (*Handler).handleSTOR}
-	commandsMap[APPE] = &CommandDescription{Fn: (*Handler).handleAPPE}
+	commandsMap[APPE] = nil
 	commandsMap[DELE] = &CommandDescription{Fn: (*Handler).handleDELE}
 	commandsMap[RNFR] = &CommandDescription{Fn: (*Handler).handleRNFR}
 	commandsMap[RNTO] = &CommandDescription{Fn: (*Handler).handleRNTO}
