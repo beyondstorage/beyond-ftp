@@ -44,9 +44,9 @@ N/A
 - config file
 
 use `toml` as the config file format, it is easy for human read. It contains the following fields:
-| name        | example        | type   | comment                               |
+| name        | default        | type   | comment                               |
 |-------------|----------------|--------|---------------------------------------|
-| service     | memory://ftp   | string | connection string for Storager init   |
+| storager    | memory://ftp   | string | connection string for Storager init   |
 | host        | 127.0.0.1      | string | server listen host                    |
 | port        | 21             | number | server listen port                    |
 | public-host | 127.0.0.1      | string | server passive connection listen host |
@@ -54,9 +54,19 @@ use `toml` as the config file format, it is easy for human read. It contains the
 
 an example config file will be provided under `config` directory.
 
+- env values
+We support the following env values, each of them represent a field in the config file. The value of `BEYOND_FTP_USERS` should be `json` format. 
+| env value name      | config      |
+|---------------------|-------------|
+| BEYOND_FTP_SOTRAGER | storager    |
+| BEYOND_FTP_HOST     | host        |
+| BEYOND_FTP_PORT     | port        |
+| BEYOND_FTP_PUB_HOST | public-host |
+| BEYOND_FTP_USERS    | users       |
+
 - apply order
 
-Server will first use the command line specifie value, if no specified, use the value in config file, then, the default value.
+The apply order is `flags`, `config file`, `env values`, `default value`
 
 ## Rationale
 
